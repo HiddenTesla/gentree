@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# TODO:
+# Folder name better be configurable
+# Leading zeros be added for easier sorting by cli or file explorer
+
+function gen_folder_pwd()
+{
+    local spread=$1
+    local index=1
+    while [ $index -le $spread ]; do
+        mkdir -p "folder.$index"
+        let index+=1
+    done
+}
+
+function gen_folder()
+{
+    local depth=$1
+    local spread=$2
+    gen_folder_pwd $spread
+
+    local i=1
+    while [ $i -le $spread ]; do
+        cd folder.$i
+        local subdepth=$(echo "$depth - 1" | bc)
+        if [ $subdepth -gt 0 ]; then
+            gen_folder $subdepth $spread
+        fi
+        cd ..
+        let i+=1
+    done
+}
+
+DEPTH=3
+SPREAD=5
+
+if [ $# -ge 1 ]; then
+    DEPTH=$1
+fi
+if [ $# -ge 2 ]; then
+    SPREAD=$2
+fi
+
+if [ $DEPTH -le 0 ]; then
+    find -maxdepth 1 -mindepth 1 -type d -name "folder.*" \
+        | xargs rm -rf
+else
+    gen_folder $DEPTH $SPREAD
+fi
+
